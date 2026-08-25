@@ -67,5 +67,4 @@ This will:
   - OVATION aurora probability grid
 
 ## Known Issues / TODO
-- No error handling around `geocoder.ip('me')` failing to resolve a location.
 - No tests yet.
