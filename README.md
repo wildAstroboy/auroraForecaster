@@ -1,70 +1,104 @@
-# Aurora Tracker
+# 🌌 Aurora Borealis Real-Time Forecast Dashboard
 
-A small Python tool that pulls real-time space-weather data from NOAA's Space
-Weather Prediction Center, finds where aurora visibility is currently most
-likely, and renders it as an interactive map centered on your own location.
+An interactive, high-resolution geospatial dashboard that visualizes real-time solar activity and aurora visibility chances. Built with Python using **Plotly Graph Objects**, **SciPy**, and live data feeds from the **NOAA Space Weather Prediction Center (SWPC)**.
 
-**Status: 🚧 Work in progress.** Core NOAA data fetching and map rendering
-work, but the project has some rough edges and unfinished pieces — see
-[Known Issues](#known-issues--todo) below.
+The interface is optimized as a single-page dark dashboard featuring a smooth, downsampled contour map of aurora visibility coupled with a color-coded geomagnetic storm historical timeline (`Kp Index`).
 
-## Features
+---
 
-- Fetches the latest OVATION aurora forecast (lat/lon/probability grid) from
-  NOAA
-- Fetches planetary K-index (current + forecast) and X-ray solar flare data
-  from NOAA
-- Auto-detects your approximate location via IP geolocation
-- Renders an interactive dark-mode world map (Plotly density map) showing
-  aurora probability, with your location pinned
-- Opens the generated map in your default browser
+## 🚀 Key Features
 
-## Project Structure
+*   **Smooth Geographic Contours**: Translates coarse 1-degree global telemetry from NOAA into continuous auroral ovals using localized **Gaussian spatial filtering**.
+*   **Widescreen Grid Optimization**: Allocates 75% of vertical screen space to the living map environment while managing performance by decimation logic.
+*   **Value-Mapped Timeline Engine**: Features a Kp Index bar chart color-coded row-by-row according to active aviation and power grid storm thresholds.
+*   **Automated Localization**: Resolves client network endpoints seamlessly using IP geocoding to overlay a precise "You Are Here" waypoint marker pin.
+*   **Fully Interactive Standalone Build**: Compiles directly into a compressed, performant, static HTML page supporting native pan, scroll-zoom, and responsive layout structures.
 
-`main.py` and `map.py` import from `clients/` and `map/` packages
-respectively, so the intended layout is:
+---
 
+## 🛠️ Architecture & Data Pipeline
+
+[ NOAA SWPC API ] ──> [ Fortran-Order Matrix Reshape ] ──> [ SciPy Gaussian Blur ] ──> [ Plotly Canvas Subplots ] ──> [ HTML Export ]
+
+1. **Telemetry Ingestion**: Grabs the live 30-minute aurora tracking arrays (65,160 geographic coordinate pairs).
+2. **Matrix Alignment**: Reconstructs data rows into an explicit 181 × 360 column-major (Fortran Order) grid matrix to prevent spatial shearing artifacts across oceans.
+3. **Spatial Blending**: Filters coordinate indices via `scipy.ndimage.gaussian_filter` to smooth jagged pixel drop-off cells into natural atmospheric color shapes.
+4. **Layout Assembly**: Integrates modern Mapbox renderers alongside standard Cartesian graph objects into a unified dashboard layout frame.
+
+---
+
+## 📂 Project Structure
+
+```text
+├── map/
+│   └── aurora_location.html   # Main dashboard export target
+├── main.py                    # Data fetching, pipeline smoothing, and layout composition
+├── requirements.txt           # Active dependency constraints
+└── README.md                  # System documentation
 ```
-.
-├── main.py                # Entry point — builds the map and opens it
-├── requirements.txt       # Python dependencies
-├── clients/
-│   └── NOAA_data.py       # NOAA SWPC API clients (Kp index, X-ray flares, aurora forecast)
-└── map/
-    ├── map.py             # Builds the Plotly map (create_map)
-    └── aurora_location.html   # Generated output map (created at runtime)
+
+---
+
+## 💻 Installation & Setup
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/wildAstroboy/auroraForecaster.git
+cd auroraForecaster
 ```
 
-## Setup
+### 2. Install Required Dependencies
+Ensure you have Python 3.10+ installed. Install the verified framework constraints:
+```bash
+pip install -r requirements.txt
+```
 
-1. Create and activate a virtual environment (recommended):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
-   ```
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+*Note: Your `requirements.txt` should contain:*
+```text
+pandas
+numpy
+requests
+plotly
+geocoder
+scipy
+```
 
-## Usage
-
+### 3. Execute the Application Pipeline
+Run the script locally to pull live NOAA payloads and generate your visualization:
 ```bash
 python main.py
 ```
 
-This will:
-1. Fetch the latest aurora probability grid from NOAA
-2. Geolocate your machine via IP
-3. Build an interactive map and save it to `map/aurora_location.html`
-4. Open the map in your default browser
+Open the newly generated `map/aurora_location.html` file directly in any modern desktop browser to navigate the interface.
 
-## Data Sources
+---
 
-- **NOAA Space Weather Prediction Center** — [services.swpc.noaa.gov](https://services.swpc.noaa.gov/)
-  - Planetary K-index (current + forecast)
-  - X-ray flare data (latest + 7-day)
-  - OVATION aurora probability grid
+## 📊 Visual Reference Configurations
 
-## Known Issues / TODO
-- No tests yet.
+### Aurora Probability Tiers (Map Layer Colorbar)
+*   🟢 **Green (10%–39%)**: Low/Unsettled peripheral auroral activity glow.
+*   🟪 **Purple (40%–74%)**: Active visibility potential. High chance of photographic capture.
+*   🔴 **Red (75%–100%)**: Intense/Storm-level overhead visible aurora display.
+
+### Kp Index Threat Scale (Timeline Bars)
+
+| Kp Metric | Associated Color | Status Condition |
+| :--- | :--- | :--- |
+| **$\ge$ 9** | 🟤 Dark Red | G5 Extreme Geomagnetic Storm |
+| **8** | 🔴 Red | G4 Severe Geomagnetic Storm |
+| **7** | 🟠 Orange | G3 Strong Geomagnetic Storm |
+| **6** | 🟡 Light Orange | G2 Moderate Geomagnetic Storm |
+| **5** | 🟡 Yellow | G1 Minor Storm Threshold |
+| **< 5** | 🟢 Bright Green | Quiet / Unsettled Background |
+
+---
+
+## 📝 License
+
+Distributed under the MIT License.
+
+---
+
+## 📡 Data Sourcing Acknowledgments
+* Data feeds provided by the **National Oceanic and Atmospheric Administration (NOAA) Space Weather Prediction Center**.
+* Map tiles styled via open-source **Carto Darkmatter** canvas configurations.
