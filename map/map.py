@@ -114,9 +114,10 @@ def create_map(coords, kp_forecast):
                      row = 2, col = 1,
                      range = [0,9],
                      dtick = 1,
+                     fixedrange = True,
                      )
 
-    fig.update_xaxes(title_text="Time", row=2, col=1)
+    fig.update_xaxes(title_text="Time", row=2, col=1, fixedrange = True)
 
     # Map layout configs
     fig.update_layout(
@@ -131,8 +132,14 @@ def create_map(coords, kp_forecast):
         mapbox = dict(
             style = "carto-darkmatter",
             zoom = 2,
-            center = {"lat": my_lat, "lon": my_lon}
-        )
+            center = {"lat": my_lat, "lon": 0},
+            bounds=dict(
+                west=-180,
+                south=-90,
+                east=180,
+                north=90
+            )
+        ),
     )
 
     # Color bar configs
