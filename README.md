@@ -30,8 +30,11 @@ The interface is optimized as a single-page dark dashboard featuring a smooth, d
 ## 📂 Project Structure
 
 ```text
+├── clients/
+│   └── NOAA_data.py           # Pulls the required data from NOAA
 ├── map/
 │   └── aurora_location.html   # Main dashboard export target
+│   └── map.py                 # Dashboard creation
 ├── main.py                    # Data fetching, pipeline smoothing, and layout composition
 ├── requirements.txt           # Active dependency constraints
 └── README.md                  # System documentation
