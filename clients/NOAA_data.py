@@ -1,7 +1,9 @@
 #Fetches data from the NOAA website: https://services.swpc.noaa.gov/
 import requests
 import pandas as pd
-
+from scipy.ndimage import gaussian_filter
+from datetime import datetime, timedelta, timezone
+from dateutil.tz import UTC
 
 # Historical Data
 KP_FORECAST_URL = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json'
@@ -15,63 +17,75 @@ LASTEST_XRAY_FLARE = 'https://services.swpc.noaa.gov/json/goes/primary/xray-flar
 AURORA_DATA = 'https://services.swpc.noaa.gov/json/ovation_aurora_latest.json'
 
 
-def get_kp_forecast():
-    response = requests.get(KP_FORECAST_URL)
-    response.raise_for_status()
-    forcast_data = response.json()
+def _fetch_json(url):
+    # Fetch NOAA endpoint
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f'Error fetching {url}: {e}')
+        return None
 
-    # Extract all the observations that are predicted.
-    predicted = [forcast for forcast in forcast_data if forcast.get('observed') == 'predicted']
-#   print(predicted)
-    return predicted
+
+def get_kp_forecast():
+    forcast_data = _fetch_json(KP_FORECAST_URL)
+    if forcast_data is None:
+        return None
+
+    cutoff_time = datetime.now(UTC) - timedelta(days=1)
+    future_cutoff_time = datetime.now(UTC) + timedelta(days=1)
+    filtered_data = [[item['time_tag'], item['kp'], item['observed']]
+                     for item in forcast_data
+                     if cutoff_time <= datetime.fromisoformat(item['time_tag']).replace(tzinfo=UTC) <= future_cutoff_time ]
+
+    df = pd.DataFrame(filtered_data, columns=['time', 'kp', 'observed'])
+
+    #print(df)
+    return df
 
 def get_kp_index():
-    response = requests.get(KP_INDEX_URL)
-    response.raise_for_status()
-    index_data = response.json()
-#   print(index_data)
-    return index_data
+    return _fetch_json(KP_INDEX_URL)
 
 def get_lastest_xray():
-    response = requests.get(LASTEST_XRAY_FLARE)
-    response.raise_for_status()
-    xray_data = response.json()
-#   print(xray_data)
-    return xray_data
+    return _fetch_json(LASTEST_XRAY_FLARE)
 
 def get_sevenday_xray():
-    response = requests.get(SEVENDAY_XRAY_FLARES)
-    response.raise_for_status()
-    xray_data = response.json()
-#   print(xray_data)
-    return xray_data
+    return _fetch_json(SEVENDAY_XRAY_FLARES)
 
 # Fetch our Aurora geo locations and percent chance
 def get_aurora_data():
-    try:
-        response = requests.get(AURORA_DATA)
-        response.raise_for_status()
-        data = response.json()
-    except Exception as e:
-        print(f'Error fetching data: {e}')
-        return
+    data = _fetch_json(AURORA_DATA)
+    if data is None:
+        return None
 
     forecast_time = data.get('Forecast Time')
     raw_data = data.get('coordinates', [])
 
-    filtered_data = [[lon, lat, percent] for lon, lat, percent in raw_data if percent > 0]
+    df = pd.DataFrame(raw_data, columns=['lon', 'lat', 'percent'])
 
-    # Put our fetched data in to a dataframe
-    df = pd.DataFrame(filtered_data, columns=['lon', 'lat', 'percent'])
-    columns_data = ['lat', 'lon', 'percent']
-    df = df.reindex(columns=columns_data)
+    num_lon, num_lat = 360, 181
 
-    # Longitudinal data arrives in a range from 0 to 360, shifting to -180 to 180 for plotly
+    # Extract the raw 1D array into an active 2D grid matrix
+    grid_z = df['percent'].values.reshape(num_lat, num_lon, order='F')
+
+    # Make pixels into smooth contour
+    smoothed_grid = gaussian_filter(grid_z.astype(float), sigma=5.0)
+
+    df['percent'] = smoothed_grid.flatten(order='F')
+
+    # Coordinate transformations
     df.loc[df['lon'] > 180, 'lon'] -= 360
+    df = df.reindex(columns=['lat', 'lon', 'percent'])
+
+    df = df.sort_values(by=['lat', 'lon']).reset_index(drop=True)
+
+    # Downsample and drop 0 values
+    df = df.iloc[::4]
+    df = df[df['percent'] >= 1.0]
 
     df['forecast'] = forecast_time
-
-    #max_group = df.loc[df['percent'].idxmax()]
-    #print(df)
-    #print(max_group)
     return df
+
+if __name__ == '__main__':
+    get_kp_forecast()
