@@ -1,10 +1,11 @@
+import textwrap
 import geocoder
 from datetime import datetime
 import plotly.graph_objects as go
 
 
 # Create the interactive map
-def create_map(coords, kp_forecast):
+def create_map(coords, kp_forecast, alerts):
 
     # Get local lat and lon, if not found, use [0,0]
     my_loc = geocoder.ip('me')
@@ -58,6 +59,22 @@ def create_map(coords, kp_forecast):
     )
     fig.add_trace(location_trace)
 
+    # Alerts Trace
+    raw_alerts_message = alerts.get('message')
+    wrapped_text = textwrap.wrap(raw_alerts_message, width=108)
+    formatted_alerts_message = '<br>'.join(wrapped_text)
+
+    fig.add_annotation(
+        text = f'<u><b>LATEST ALERT</b></u>: {formatted_alerts_message}',
+        xref = 'paper', yref = 'paper',
+        x = 0.6, y = 1.14,
+        xanchor = 'center',
+        yanchor = 'middle',
+        showarrow = False,
+        align = 'center',
+        font = dict(size=14, color='#AAAAAA')
+    )
+
     # Process Kp Data
     kp_data = kp_forecast
 
@@ -78,25 +95,25 @@ def create_map(coords, kp_forecast):
 
     # Bar Chart Trace
     bar_trace = go.Bar(
-        name='KP Index',
-        x=kp_data['time'],
-        y=kp_data['kp'],
+        name = 'KP Index',
+        x = kp_data['time'],
+        y = kp_data['kp'],
 
-        customdata=list(zip(kp_data['kp'], kp_data['observed'])),
-        textposition='outside',
-        texttemplate='%{customdata[0]:.1f}<br>(%{customdata[1]})',
+        customdata = list(zip(kp_data['kp'], kp_data['observed'])),
+        textposition = 'outside',
+        texttemplate = '%{customdata[0]:.1f}<br>(%{customdata[1]})',
 
-        marker=dict(
-            color=kp_data['bar_color'],
-            line=dict(width=0)
+        marker = dict(
+            color = kp_data['bar_color'],
+            line = dict(width=0)
         ),
 
-        hovertemplate=(
+        hovertemplate = (
             'Time: %{x}<br>'
             'Kp Index: %{customdata[0]:.1f}<br>'
             'Status: %{customdata[1]}<extra></extra>'
         ),
-        visible=False  # Hidden on initial load
+        visible = False  # Hidden on initial load
     )
     fig.add_trace(bar_trace)
 
@@ -105,43 +122,47 @@ def create_map(coords, kp_forecast):
     fig.update_xaxes(title_text='Time', fixedrange=True, visible=False)
 
     # Empty mapbox style schema
-    empty_mapbox_style = {"version": 8, "sources": {}, "layers": []}
+    empty_mapbox_style = {'version': 8, 'sources': {}, 'layers': []}
 
     # Base Layout Configurations
     fig.update_layout(
-        template = "plotly_dark",
+        template = 'plotly_dark',
         title_text = 'Map of Aurora Chance',
         title_font_size = 32,
         title_font_weight = 'bold',
-        title_x = 0.5,
+        title_x = 0.03,
+        title_y = 0.95,
         title_xref = 'container',
         title_subtitle_text = f'Forecast Time: {local_dt}',
         showlegend = False,
         plot_bgcolor = '#111111',
         paper_bgcolor = '#111111',
+        margin = dict(t=190, b=50, l=50, r=50),
         mapbox = dict(
             style = 'carto-darkmatter',
             zoom = 2,
             center = {'lat': my_lat, 'lon': 0},
-            bounds=dict(west=-180, south=-90, east=180, north=90)
+            bounds = dict(west=-180, south=-90, east=180, north=90)
         ),
         # Create tabs for each chart
-        updatemenus=[
+        updatemenus = [
             dict(
-                type='buttons',
-                direction='right',
-                x=0.1,
-                y=1.15,
-                showactive=True,
-                font=dict(color='black'),
-                buttons=[
+                type = 'buttons',
+                direction = 'right',
+                x = 0.12,
+                y = 1.06,
+                showactive = True,
+                font = dict(color='black'),
+                buttons = [
                     dict(
-                        label='Aurora Chance',
-                        method='update',
-                        args=[
+                        label = 'Aurora Chance',
+                        method = 'update',
+                        args = [
                             {'visible': [True, True, False]},
                             {
                                 'title.text': 'Map of Aurora Chance',
+                                'title.x': 0.03,
+                                'title.y': 0.95,
                                 'title.subtitle.text': f'Forecast Time: {local_dt}',
                                 'coloraxis.colorbar.visible': True,
                                 'xaxis.visible': False,
@@ -152,12 +173,14 @@ def create_map(coords, kp_forecast):
                         ],
                     ),
                     dict(
-                        label='KP Index',
-                        method='update',
-                        args=[
+                        label = 'KP Index',
+                        method = 'update',
+                        args = [
                             {'visible': [False, False, True]},
                             {
                                 'title.text': 'KP Index Forecast',
+                                'title.x': 0.03,
+                                'title.y': 0.93,
                                 'title.subtitle.text': None,
                                 'coloraxis.colorbar.visible': False,
                                 'xaxis.visible': True,

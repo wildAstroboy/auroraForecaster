@@ -13,6 +13,7 @@ The interface is optimized as a single-page dark dashboard featuring a smooth, d
 *   **Value-Mapped Timeline Engine**: Features a Kp Index bar chart color-coded row-by-row according to active aviation and power grid storm thresholds.
 *   **Automated Localization**: Resolves client network endpoints seamlessly using IP geocoding to overlay a precise "You Are Here" waypoint marker pin.
 *   **Fully Interactive Standalone Build**: Compiles directly into a compressed, performant, static HTML page supporting native pan, scroll-zoom, and responsive layout structures.
+*   **Latest Alerts Section**: Shows real-time notifications, warnings, and watches for solar and geomagnetic activity.
 
 ---
 

@@ -17,8 +17,11 @@ LASTEST_XRAY_FLARE = 'https://services.swpc.noaa.gov/json/goes/primary/xray-flar
 # Latitude, Longitude, and percent chance of Aurora
 AURORA_DATA = 'https://services.swpc.noaa.gov/json/ovation_aurora_latest.json'
 
-class NoaaData:
+# Alerts
+ALERTS_URL = 'https://services.swpc.noaa.gov/products/alerts.json'
 
+class NoaaData:
+    # Fetch JSON Data
     @staticmethod
     def _fetch_json(url) -> dict | None:
         # Fetch NOAA endpoint
@@ -30,6 +33,7 @@ class NoaaData:
             print(f'Error fetching {url}: {e}')
             return None
 
+    # Get the Kp Forecast
     def get_kp_forecast(self):
         forcast_data = self._fetch_json(KP_FORECAST_URL)
         if forcast_data is None:
@@ -46,6 +50,14 @@ class NoaaData:
 
         # print(df)
         return df
+
+    # Get Space Weather Alerts
+    def get_alerts(self):
+        alerts_data = self._fetch_json(ALERTS_URL)
+        if alerts_data is None:
+            return None
+        return alerts_data[0]
+
     """
     Planned for future use.
     
