@@ -102,6 +102,8 @@ This fetches live NOAA payloads, builds the dashboard, and opens `map/aurora_loc
 ### X-Ray Flux Tab
 Plots four series — GOES-18 Short, GOES-18 Long, GOES-19 Short, GOES-19 Long — on a log-scale Y axis (Watts/m²), letting you cross-check flare activity against the primary and secondary GOES satellites.
 
+<img width="1715" height="955" alt="Screenshot 2026-08-31 at 1 52 13 PM" src="https://github.com/user-attachments/assets/02c2c563-5ad0-4026-92f8-3741484db7ea" />
+
 ---
 
 ## 📝 License
