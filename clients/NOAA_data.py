@@ -12,7 +12,8 @@ SEVENDAY_XRAY_FLARES = 'https://services.swpc.noaa.gov/json/goes/primary/xray-fl
 
 # Current & Future Data and Predictions
 KP_INDEX_URL = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json'
-LASTEST_XRAY_FLARE = 'https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json'
+PRIMARY_XRAY_FLARES = 'https://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json'
+SECONDARY_XRAY_FLARES = 'https://services.swpc.noaa.gov/json/goes/secondary/xrays-7-day.json'
 
 # Latitude, Longitude, and percent chance of Aurora
 AURORA_DATA = 'https://services.swpc.noaa.gov/json/ovation_aurora_latest.json'
@@ -58,14 +59,30 @@ class NoaaData:
             return None
         return alerts_data[0]
 
+    def get_xray_data(self):
+        primary_data = self._fetch_json(PRIMARY_XRAY_FLARES)
+        secondary_data = self._fetch_json(SECONDARY_XRAY_FLARES)
+        if primary_data is None or secondary_data is None:
+            return None
+
+        df1 = pd.DataFrame(primary_data)
+        dfs_by_energy = {energy: group for energy, group in df1.groupby('energy')}
+        p_short_energy_df = dfs_by_energy['0.05-0.4nm']
+        p_long_energy_df = dfs_by_energy['0.1-0.8nm']
+
+        df2 = pd.DataFrame(secondary_data)
+        dfs_by_energy = {energy: group for energy, group in df2.groupby('energy')}
+        s_short_energy_df = dfs_by_energy['0.05-0.4nm']
+        s_long_energy_df = dfs_by_energy['0.1-0.8nm']
+
+        #print(p_long_energy_df)
+        return p_short_energy_df, p_long_energy_df, s_short_energy_df, s_long_energy_df
+
     """
     Planned for future use.
     
     def get_kp_index(self):
         return self._fetch_json(KP_INDEX_URL)
-
-    def get_lastest_xray(self):
-        return self._fetch_json(LASTEST_XRAY_FLARE)
 
     def get_sevenday_xray(self):
         return self._fetch_json(SEVENDAY_XRAY_FLARES)
@@ -106,3 +123,6 @@ class NoaaData:
         return df
 
 noaa_data = NoaaData()
+
+if __name__ == '__main__':
+    noaa_data.get_primary_xray()

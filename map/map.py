@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 
 
 # Create the interactive map
-def create_map(coords, kp_forecast, alerts):
+def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_short_energy, s_long_energy, carto_api_key):
 
     # Get local lat and lon, if not found, use [0,0]
     my_loc = geocoder.ip('me')
@@ -99,27 +99,81 @@ def create_map(coords, kp_forecast, alerts):
         x = kp_data['time'],
         y = kp_data['kp'],
 
-        customdata = list(zip(kp_data['kp'], kp_data['observed'])),
-        textposition = 'outside',
-        texttemplate = '%{customdata[0]:.1f}<br>(%{customdata[1]})',
+        xaxis='x',
+        yaxis='y',
 
-        marker = dict(
-            color = kp_data['bar_color'],
-            line = dict(width=0)
+        customdata = [list(x) for x in zip(kp_data['kp'], kp_data['observed'])],
+        textposition='outside',
+        texttemplate='%{customdata[0]:.1f}<br>(%{customdata[1]})',
+
+        marker=dict(
+            color=kp_data['bar_color'],
+            line=dict(width=0)
         ),
-
-        hovertemplate = (
+        hoverinfo='all',
+        hovertemplate=(
             'Time: %{x}<br>'
             'Kp Index: %{customdata[0]:.1f}<br>'
             'Status: %{customdata[1]}<extra></extra>'
         ),
-        visible = False  # Hidden on initial load
+        visible=False  # Hidden on initial load
     )
     fig.add_trace(bar_trace)
 
-    # Configure Axes
-    fig.update_yaxes(title_text='Kp Index', range=[0,9], dtick=1, fixedrange=True, visible=False)
-    fig.update_xaxes(title_text='Time', fixedrange=True, visible=False)
+    # X-ray Data
+    p_short_df = p_short_energy
+    p_long_df = p_long_energy
+    s_short_df = s_short_energy
+    s_long_df = s_long_energy
+
+    # Add line trace
+    # Primary Short
+    line_trace_p_short = go.Scatter(
+        name = 'GOES-18 Short',
+        x = p_short_df['time_tag'],
+        y = p_short_df['flux'],
+        xaxis='x',
+        yaxis='y',
+        visible = False,
+    )
+
+    fig.add_trace(line_trace_p_short)
+
+    # Primary Long
+    line_trace_p_long = go.Scatter(
+        name='GOES-18 Long',
+        x=p_long_df['time_tag'],
+        y=p_long_df['flux'],
+        xaxis='x',
+        yaxis='y',
+        visible=False,
+    )
+
+    fig.add_trace(line_trace_p_long)
+
+    # Secondary Short
+    line_trace_s_short = go.Scatter(
+        name='GOES-19 Short',
+        x=s_short_df['time_tag'],
+        y=s_short_df['flux'],
+        xaxis='x',
+        yaxis='y',
+        visible=False,
+    )
+
+    fig.add_trace(line_trace_s_short)
+
+    # Secondary Long
+    line_trace_s_long = go.Scatter(
+        name='GOES-19 Long',
+        x=s_long_df['time_tag'],
+        y=s_long_df['flux'],
+        xaxis='x',
+        yaxis='y',
+        visible=False,
+    )
+
+    fig.add_trace(line_trace_s_long)
 
     # Empty mapbox style schema
     empty_mapbox_style = {'version': 8, 'sources': {}, 'layers': []}
@@ -127,7 +181,7 @@ def create_map(coords, kp_forecast, alerts):
     # Base Layout Configurations
     fig.update_layout(
         template = 'plotly_dark',
-        title_text = 'Map of Aurora Chance',
+        title_text = 'Aurora Chance',
         title_font_size = 32,
         title_font_weight = 'bold',
         title_x = 0.03,
@@ -137,8 +191,23 @@ def create_map(coords, kp_forecast, alerts):
         showlegend = False,
         plot_bgcolor = '#111111',
         paper_bgcolor = '#111111',
-        margin = dict(t=190, b=50, l=50, r=50),
+        margin = dict(t=200, b=50, l=50, r=50),
+        xaxis1 = dict(
+            visible = False,
+            domain = [0, 1],
+        ),
+        yaxis1 = dict(visible = False, domain = [0, 1]),
         mapbox = dict(
+            layers = [
+                dict(
+                    sourcetype = "raster",
+                    source = [
+                        f"https://basemaps.cartocdn.com/rastertiles/dark_all/{{z}}/{{x}}/{{y}}.png?key={carto_api_key}"
+                    ],
+                    below = "traces",
+                    sourceattribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                )
+            ],
             style = 'carto-darkmatter',
             zoom = 2,
             center = {'lat': my_lat, 'lon': 0},
@@ -149,16 +218,17 @@ def create_map(coords, kp_forecast, alerts):
             dict(
                 type = 'buttons',
                 direction = 'right',
-                x = 0.12,
+                x = 0.18,
                 y = 1.06,
                 showactive = True,
                 font = dict(color='black'),
                 buttons = [
+                    # Aurora Map Tab
                     dict(
                         label = 'Aurora Chance',
                         method = 'update',
                         args = [
-                            {'visible': [True, True, False]},
+                            {'visible': [True, True, False, False, False, False, False]},
                             {
                                 'title.text': 'Map of Aurora Chance',
                                 'title.x': 0.03,
@@ -167,16 +237,35 @@ def create_map(coords, kp_forecast, alerts):
                                 'coloraxis.colorbar.visible': True,
                                 'xaxis.visible': False,
                                 'yaxis.visible': False,
+                                'mapbox.visible': True,
+                                'mapbox.domain': dict(x=[0, 1], y=[0, 1]),
                                 'mapbox.style': 'carto-darkmatter',
+                                'mapbox.layers': [
+                                    dict(
+                                        sourcetype="raster",
+                                        source=[
+                                            f"https://basemaps.cartocdn.com/rastertiles/dark_all/{{z}}/{{x}}/{{y}}.png?key={carto_api_key}"
+                                        ],
+                                        below="traces",
+                                        sourceattribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                                    )
+                                ],
                                 'dragmode': 'pan',
+                                'margin.t': 200,
+                                'margin.b': 50,
+                                'margin.l': 50,
+                                'margin.r': 50,
+                                'showlegend': False,
+                                'hovermode': 'closest',
                             }
                         ],
                     ),
+                    # Kp Index Tab
                     dict(
                         label = 'KP Index',
                         method = 'update',
                         args = [
-                            {'visible': [False, False, True]},
+                            {'visible': [False, False, True, False, False, False, False]},
                             {
                                 'title.text': 'KP Index Forecast',
                                 'title.x': 0.03,
@@ -185,11 +274,63 @@ def create_map(coords, kp_forecast, alerts):
                                 'coloraxis.colorbar.visible': False,
                                 'xaxis.visible': True,
                                 'yaxis.visible': True,
+                                'yaxis.type': None,
+                                'yaxis.range': [0,9],
+                                'xaxis.title.text': 'Time',
+                                'yaxis.title.text': 'Kp Index',
+                                'mapbox.visible': False,
+                                'mapbox.domain': dict(x=[0, 0.01], y=[0, 0.01]),
                                 'mapbox.style': empty_mapbox_style,
                                 'dragmode': 'zoom',
+                                'margin.t': 200,
+                                'margin.b': 50,
+                                'margin.l': 50,
+                                'margin.r': 50,
+                                'showlegend': False,
+                                'hovermode': 'x',
                             }
                         ],
                     ),
+                    # X-Ray Flux Tab
+                    dict(
+                        label = 'X-Ray Flux',
+                        method = 'update',
+                        args = [
+                            {'visible': [False, False, False, True, True, True, True]},
+                            {
+                                'title.text': 'X-Ray Flux',
+                                'title.x': 0.03,
+                                'title.y': 0.93,
+                                'title.subtitle.text': None,
+                                'coloraxis.colorbar.visible': False,
+                                'xaxis.visible': True,
+                                'yaxis.visible': True,
+                                'xaxis.title.text': 'Time Tag',
+                                'yaxis.title.text': 'Flux Watts / m²',
+                                'yaxis.type': 'log',
+                                'yaxis.range': [-10, -2],
+                                'yaxis.dtick': None,
+                                'mapbox.visible': False,
+                                'mapbox.domain': dict(x=[0, 0.01], y=[0, 0.01]),
+                                'mapbox.style': empty_mapbox_style,
+                                'dragmode': 'zoom',
+                                'margin.t': 200,
+                                'margin.b': 50,
+                                'margin.l': 50,
+                                'margin.r': 50,
+                                'showlegend': True,
+                                'hovermode': 'x',
+                                'legend': dict(
+                                    yanchor="top",
+                                    y=0.95,
+                                    xanchor="right",
+                                    x=0.98,
+                                    bgcolor="rgba(17, 17, 17, 0.6)",
+                                    font=dict(color="#FFFFFF")
+                                )
+                            }
+                        ]
+                    )
                 ],
             )
         ]
