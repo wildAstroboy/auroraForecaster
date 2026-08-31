@@ -84,7 +84,7 @@ This fetches live NOAA payloads, builds the dashboard, and opens `map/aurora_loc
 *   🟪 **Purple (40%–74%)**: Active visibility potential. High chance of photographic capture.
 *   🔴 **Red (75%–100%)**: Intense/storm-level overhead visible aurora display.
 
-<img width="1712" height="953" alt="Screenshot 2026-08-31 at 2 02 40 PM" src="https://github.com/user-attachments/assets/d42a2192-4f5f-4c97-be69-52383f3a9b9a" />
+<img width="1714" height="956" alt="Screenshot 2026-08-31 at 2 04 07 PM" src="https://github.com/user-attachments/assets/4616655b-ae44-40e6-9f76-54fa64999a48" />
 
 ### Kp Index Threat Scale (Timeline Bars)
 
