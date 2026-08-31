@@ -84,7 +84,7 @@ This fetches live NOAA payloads, builds the dashboard, and opens `map/aurora_loc
 *   🟪 **Purple (40%–74%)**: Active visibility potential. High chance of photographic capture.
 *   🔴 **Red (75%–100%)**: Intense/storm-level overhead visible aurora display.
 
-<img width="1714" height="956" alt="Screenshot 2026-08-27 at 11 12 10 AM" src="https://github.com/user-attachments/assets/857f63a1-7681-4322-8b47-81ef67909202" />
+<img width="1712" height="953" alt="Screenshot 2026-08-31 at 2 02 40 PM" src="https://github.com/user-attachments/assets/d42a2192-4f5f-4c97-be69-52383f3a9b9a" />
 
 ### Kp Index Threat Scale (Timeline Bars)
 
@@ -97,7 +97,7 @@ This fetches live NOAA payloads, builds the dashboard, and opens `map/aurora_loc
 | **5** | 🟡 Yellow | G1 Minor Storm Threshold |
 | **< 5** | 🟢 Bright Green | Quiet / Unsettled Background |
 
-<img width="1715" height="957" alt="Screenshot 2026-08-27 at 11 12 24 AM" src="https://github.com/user-attachments/assets/1e30c226-feb1-4c65-8d5a-6b0e848776e3" />
+<img width="1712" height="952" alt="Screenshot 2026-08-31 at 2 03 07 PM" src="https://github.com/user-attachments/assets/5726cab0-d2dd-4971-a5ce-61a3114db8be" />
 
 ### X-Ray Flux Tab
 Plots four series — GOES-18 Short, GOES-18 Long, GOES-19 Short, GOES-19 Long — on a log-scale Y axis (Watts/m²), letting you cross-check flare activity against the primary and secondary GOES satellites.
