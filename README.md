@@ -1,30 +1,34 @@
 # 🌌 Aurora Borealis Real-Time Forecast Dashboard
 
-An interactive, high-resolution geospatial dashboard that visualizes real-time solar activity and aurora visibility chances. Built with Python using **Plotly Graph Objects**, **SciPy**, and live data feeds from the **NOAA Space Weather Prediction Center (SWPC)**.
+An interactive, single-page geospatial dashboard that visualizes real-time solar activity and aurora visibility chances. Built with Python using **Plotly Graph Objects**, **SciPy**, and live data feeds from the **NOAA Space Weather Prediction Center (SWPC)**.
 
-The interface is optimized as a single-page dark dashboard featuring a smooth, downsampled contour map of aurora visibility coupled with a color-coded geomagnetic storm historical timeline (`Kp Index`).
+The dashboard renders as one dark-themed Plotly figure with three tabs — **Aurora Chance**, **KP Index**, and **X-Ray Flux** — that swap in and out via trace-visibility toggling, so the whole thing ships as a single static HTML file.
 
 ---
 
 ## 🚀 Key Features
 
 *   **Smooth Geographic Contours**: Translates coarse 1-degree global telemetry from NOAA into continuous auroral ovals using localized **Gaussian spatial filtering**.
-*   **Widescreen Grid Optimization**: Allocates 75% of vertical screen space to the living map environment while managing performance by decimation logic.
-*   **Value-Mapped Timeline Engine**: Features a Kp Index bar chart color-coded row-by-row according to active aviation and power grid storm thresholds.
-*   **Automated Localization**: Resolves client network endpoints seamlessly using IP geocoding to overlay a precise "You Are Here" waypoint marker pin.
-*   **Fully Interactive Standalone Build**: Compiles directly into a compressed, performant, static HTML page supporting native pan, scroll-zoom, and responsive layout structures.
-*   **Latest Alerts Section**: Shows real-time notifications, warnings, and watches for solar and geomagnetic activity.
+*   **Tabbed Single-Figure Dashboard**: One Plotly figure with in-page tabs for the aurora map, the Kp index timeline, and X-ray flux — no page reloads, just trace visibility swaps.
+*   **Value-Mapped Timeline Engine**: Kp Index bar chart color-coded row-by-row according to active aviation and power grid storm thresholds.
+*   **X-Ray Flux Monitoring**: Plots GOES-18 and GOES-19 short- and long-wavelength X-ray flux on a log-scale timeline.
+*   **Latest Alerts Banner**: Surfaces the most recent NOAA space weather alert as an annotation above the map.
+*   **Automated Localization**: Resolves client network endpoints via IP geocoding to overlay a "You Are Here" waypoint pin.
+*   **Fully Interactive Standalone Build**: Compiles into a single static HTML page supporting pan, scroll-zoom, and tab switching — no server required.
 
 ---
 
 ## 🛠️ Architecture & Data Pipeline
 
-[ NOAA SWPC API ] ──> [ Fortran-Order Matrix Reshape ] ──> [ SciPy Gaussian Blur ] ──> [ Plotly Canvas Subplots ] ──> [ HTML Export ]
+```
+[ NOAA SWPC API ] ──> [ Fortran-Order Matrix Reshape ] ──> [ SciPy Gaussian Blur ] ──> [ Plotly Figure w/ Tabbed updatemenus ] ──> [ HTML Export ]
+```
 
-1. **Telemetry Ingestion**: Grabs the live 30-minute aurora tracking arrays (65,160 geographic coordinate pairs).
-2. **Matrix Alignment**: Reconstructs data rows into an explicit 181 × 360 column-major (Fortran Order) grid matrix to prevent spatial shearing artifacts across oceans.
-3. **Spatial Blending**: Filters coordinate indices via `scipy.ndimage.gaussian_filter` to smooth jagged pixel drop-off cells into natural atmospheric color shapes.
-4. **Layout Assembly**: Integrates modern Mapbox renderers alongside standard Cartesian graph objects into a unified dashboard layout frame.
+1. **Telemetry Ingestion**: Pulls the live 30-minute aurora tracking grid, the Kp forecast, the latest space weather alert, and GOES-18/19 X-ray flux (primary + secondary, short + long wavelength) from NOAA SWPC.
+2. **Matrix Alignment**: Reconstructs the aurora coordinate array into an explicit 181 × 360 column-major (Fortran order) grid matrix to prevent spatial shearing artifacts across oceans.
+3. **Spatial Blending**: Filters the grid via `scipy.ndimage.gaussian_filter` to smooth jagged pixel drop-off into natural atmospheric color shapes.
+4. **Layout Assembly**: Builds every trace (density map, location pin, Kp bars, four X-ray flux lines) into a single `go.Figure`, then uses `updatemenus` buttons to toggle trace visibility and swap axis/mapbox/title config between the three tabs.
+5. **Map Tiles**: Renders a `carto-darkmatter` base style plus an authenticated CARTO raster tile overlay (requires `CARTO_API_KEY`).
 
 ---
 
@@ -32,12 +36,13 @@ The interface is optimized as a single-page dark dashboard featuring a smooth, d
 
 ```text
 ├── clients/
-│   └── NOAA_data.py           # Pulls the required data from NOAA
+│   └── NOAA_data.py           # NoaaData class — pulls aurora, Kp, alerts, and X-ray data from NOAA
 ├── map/
-│   └── aurora_location.html   # Main dashboard export target
-│   └── map.py                 # Dashboard creation
-├── main.py                    # Data fetching, pipeline smoothing, and layout composition
-├── requirements.txt           # Active dependency constraints
+│   ├── aurora_location.html   # Generated dashboard output (created at runtime)
+│   └── map.py                 # create_map() — builds the tabbed Plotly figure
+├── main.py                    # Fetches data, checks for failures, builds and opens the dashboard
+├── .env                       # Local only, not committed — holds CARTO_API_KEY
+├── requirements.txt           # Dependency constraints
 └── README.md                  # System documentation
 ```
 
@@ -47,44 +52,39 @@ The interface is optimized as a single-page dark dashboard featuring a smooth, d
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/wildAstroboy/auroraForecaster.git
-cd auroraForecaster
+git clone https://github.com/wildAstroboy/auroraForecast.git
+cd auroraForecast
 ```
 
-### 2. Install Required Dependencies
-Ensure you have Python 3.10+ installed. Install the verified framework constraints:
+### 2. Install Dependencies
+Ensure you have Python 3.10+ installed, then:
 ```bash
 pip install -r requirements.txt
 ```
 
-*Note: Your `requirements.txt` should contain:*
+### 3. Set Up Your CARTO API Key
+The map's base tile layer uses an authenticated CARTO raster endpoint. Create a `.env` file in the project root:
 ```text
-pandas
-numpy
-requests
-plotly
-geocoder
-scipy
+CARTO_API_KEY=your_carto_api_key_here
 ```
+`main.py` loads this via `python-dotenv` at startup — the dashboard will still build without it, but the raster tile layer won't load.
 
-### 3. Execute the Application Pipeline
-Run the script locally to pull live NOAA payloads and generate your visualization:
+### 4. Run the Pipeline
 ```bash
 python main.py
 ```
-
-Open the newly generated `map/aurora_location.html` file directly in any modern desktop browser to navigate the interface.
+This fetches live NOAA payloads, builds the dashboard, and opens `map/aurora_location.html` in your default browser.
 
 ---
 
 ## 📊 Visual Reference Configurations
 
 ### Aurora Probability Tiers (Map Layer Colorbar)
-*   🟢 **Green (10%–39%)**: Low/Unsettled peripheral auroral activity glow.
+*   🟢 **Green (10%–39%)**: Low/unsettled peripheral auroral activity glow.
 *   🟪 **Purple (40%–74%)**: Active visibility potential. High chance of photographic capture.
-*   🔴 **Red (75%–100%)**: Intense/Storm-level overhead visible aurora display.
+*   🔴 **Red (75%–100%)**: Intense/storm-level overhead visible aurora display.
 
-<img width="1714" height="956" alt="Screenshot 2026-08-27 at 11 12 10 AM" src="https://github.com/user-attachments/assets/857f63a1-7681-4322-8b47-81ef67909202" />
+<img width="1714" height="956" alt="Screenshot 2026-08-27 at 11 12 10 AM" src="https://github.com/user-attachments/assets/857f63a1-7681-4322-8b47-81ef67909202" />
 
 ### Kp Index Threat Scale (Timeline Bars)
 
@@ -97,7 +97,10 @@ Open the newly generated `map/aurora_location.html` file directly in any modern 
 | **5** | 🟡 Yellow | G1 Minor Storm Threshold |
 | **< 5** | 🟢 Bright Green | Quiet / Unsettled Background |
 
-<img width="1715" height="957" alt="Screenshot 2026-08-27 at 11 12 24 AM" src="https://github.com/user-attachments/assets/1e30c226-feb1-4c65-8d5a-6b0e848776e3" />
+<img width="1715" height="957" alt="Screenshot 2026-08-27 at 11 12 24 AM" src="https://github.com/user-attachments/assets/1e30c226-feb1-4c65-8d5a-6b0e848776e3" />
+
+### X-Ray Flux Tab
+Plots four series — GOES-18 Short, GOES-18 Long, GOES-19 Short, GOES-19 Long — on a log-scale Y axis (Watts/m²), letting you cross-check flare activity against the primary and secondary GOES satellites.
 
 ---
 
@@ -109,4 +112,4 @@ Distributed under the MIT License.
 
 ## 📡 Data Sourcing Acknowledgments
 * Data feeds provided by the **National Oceanic and Atmospheric Administration (NOAA) Space Weather Prediction Center**.
-* Map tiles styled via open-source **Carto Darkmatter** canvas configurations.
+* Map tiles styled via **Carto Darkmatter**, with raster tiles served by CARTO.

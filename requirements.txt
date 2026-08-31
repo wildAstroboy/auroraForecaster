@@ -21,3 +21,4 @@ scipy-stubs==1.18.1.0
 six==1.17.0
 urllib3==2.7.0
 geocoder==1.38.1
+python-dotenv
