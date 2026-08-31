@@ -1,4 +1,4 @@
-# 🌌 Aurora Borealis Real-Time Forecast Dashboard
+# 🌌 Aurora Borealis/Australis Real-Time Forecast Dashboard
 
 An interactive, single-page geospatial dashboard that visualizes real-time solar activity and aurora visibility chances. Built with Python using **Plotly Graph Objects**, **SciPy**, and live data feeds from the **NOAA Space Weather Prediction Center (SWPC)**.
 
