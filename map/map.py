@@ -1,11 +1,11 @@
 import textwrap
 import geocoder
-from datetime import datetime
+from datetime import datetime, UTC, timedelta
 import plotly.graph_objects as go
 
 
 # Create the interactive map
-def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_short_energy, s_long_energy, carto_api_key):
+def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_short_energy, s_long_energy, timeline_range, carto_api_key):
 
     # Get local lat and lon, if not found, use [0,0]
     my_loc = geocoder.ip('me')
@@ -132,8 +132,8 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         name = 'GOES-18 Short',
         x = p_short_df['time_tag'],
         y = p_short_df['flux'],
-        xaxis='x',
-        yaxis='y',
+        xaxis='x2',
+        yaxis='y2',
         visible = False,
     )
 
@@ -144,8 +144,8 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         name='GOES-18 Long',
         x=p_long_df['time_tag'],
         y=p_long_df['flux'],
-        xaxis='x',
-        yaxis='y',
+        xaxis='x2',
+        yaxis='y2',
         visible=False,
     )
 
@@ -156,8 +156,8 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         name='GOES-19 Short',
         x=s_short_df['time_tag'],
         y=s_short_df['flux'],
-        xaxis='x',
-        yaxis='y',
+        xaxis='x2',
+        yaxis='y2',
         visible=False,
     )
 
@@ -168,8 +168,8 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         name='GOES-19 Long',
         x=s_long_df['time_tag'],
         y=s_long_df['flux'],
-        xaxis='x',
-        yaxis='y',
+        xaxis='x2',
+        yaxis='y2',
         visible=False,
     )
 
@@ -192,11 +192,12 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         plot_bgcolor = '#111111',
         paper_bgcolor = '#111111',
         margin = dict(t=200, b=50, l=50, r=50),
-        xaxis1 = dict(
-            visible = False,
-            domain = [0, 1],
-        ),
-        yaxis1 = dict(visible = False, domain = [0, 1]),
+
+        xaxis = dict(visible = False, domain = [0, 1], fixedrange = True),
+        yaxis = dict(visible = False, domain = [0, 1], range = [0, 9], fixedrange = True),
+        xaxis2 = dict(visible = False, domain = [0, 1], overlaying = 'x', fixedrange = True),
+        yaxis2 = dict(visible = False, domain = [0, 1], overlaying = 'y', range = [-9, -2], type = 'log', fixedrange = True),
+
         mapbox = dict(
             layers = [
                 dict(
@@ -235,8 +236,13 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
                                 'title.y': 0.95,
                                 'title.subtitle.text': f'Forecast Time: {local_dt}',
                                 'coloraxis.colorbar.visible': True,
-                                'xaxis.visible': False,
-                                'yaxis.visible': False,
+
+                                'xaxis.visible': False, 'yaxis.visible': False,
+                                'xaxis2.visible': False, 'yaxis2.visible': False,
+
+                                'xaxis2.rangeslider.visible': False,
+                                'xaxis2.rangeselector.visible': False,
+
                                 'mapbox.visible': True,
                                 'mapbox.domain': dict(x=[0, 1], y=[0, 1]),
                                 'mapbox.style': 'carto-darkmatter',
@@ -257,6 +263,7 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
                                 'margin.r': 50,
                                 'showlegend': False,
                                 'hovermode': 'closest',
+                                'updatemenus[1].visible': False
                             }
                         ],
                     ),
@@ -272,12 +279,18 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
                                 'title.y': 0.93,
                                 'title.subtitle.text': None,
                                 'coloraxis.colorbar.visible': False,
-                                'xaxis.visible': True,
-                                'yaxis.visible': True,
-                                'yaxis.type': None,
+
+                                'xaxis.visible': True, 'yaxis.visible': True,
+                                'xaxis2.visible': False, 'yaxis2.visible': False,
+
+                                'xaxis2.rangeslider.visible': False,
+                                'xaxis2.rangeselector.visible': False,
+
+                                'yaxis.type': 'linear',
                                 'yaxis.range': [0,9],
                                 'xaxis.title.text': 'Time',
                                 'yaxis.title.text': 'Kp Index',
+
                                 'mapbox.visible': False,
                                 'mapbox.domain': dict(x=[0, 0.01], y=[0, 0.01]),
                                 'mapbox.style': empty_mapbox_style,
@@ -288,6 +301,7 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
                                 'margin.r': 50,
                                 'showlegend': False,
                                 'hovermode': 'x',
+                                'updatemenus[1].visible': False
                             }
                         ],
                     ),
@@ -303,13 +317,18 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
                                 'title.y': 0.93,
                                 'title.subtitle.text': None,
                                 'coloraxis.colorbar.visible': False,
-                                'xaxis.visible': True,
-                                'yaxis.visible': True,
-                                'xaxis.title.text': 'Time Tag',
-                                'yaxis.title.text': 'Flux Watts / m²',
-                                'yaxis.type': 'log',
-                                'yaxis.range': [-10, -2],
-                                'yaxis.dtick': None,
+
+                                'xaxis.visible': False, 'yaxis.visible': False,
+                                'xaxis2.visible': True, 'yaxis2.visible': True,
+
+                                'xaxis2.title.text': 'Time Tag',
+                                'yaxis2.title.text': 'Flux Watts / m²',
+                                'yaxis2.type': 'log',
+                                'yaxis2.range': [-10, -2],
+                                'yaxis2.dtick': None,
+
+                                'xaxis2.type': 'date',
+
                                 'mapbox.visible': False,
                                 'mapbox.domain': dict(x=[0, 0.01], y=[0, 0.01]),
                                 'mapbox.style': empty_mapbox_style,
@@ -320,6 +339,7 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
                                 'margin.r': 50,
                                 'showlegend': True,
                                 'hovermode': 'x',
+                                'updatemenus[1].visible': True,
                                 'legend': dict(
                                     yanchor="top",
                                     y=0.95,
@@ -330,8 +350,48 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
                                 )
                             }
                         ]
-                    )
+                    ),
                 ],
+            ),
+            dict(
+                type='buttons',
+                direction='right',
+                x=0.52,
+                y=1.06,
+                active=0,
+                visible = False,
+                font=dict(color='black'),
+                buttons=[
+                    dict(
+                        label="Full View",
+                        method="relayout",
+                        args=[{"xaxis2.range": timeline_range}]
+                    ),
+                    dict(
+                        label="Last 3 Days",
+                        method="relayout",
+                        args=[{"xaxis2.range": [
+                            (datetime.now(UTC) - timedelta(days=3)).strftime('%Y-%m-%d %H:%M:%S'),
+                            datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')
+                        ]}]
+                    ),
+                    dict(
+                        label="Last 24 Hours",
+                        method="relayout",
+                        args=[{"xaxis2.range": [
+                            (datetime.now(UTC) - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
+                            datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')
+                        ]}]
+                    ),
+                    dict(
+                        label="Last 6 Hours",
+                        method="relayout",
+                        args=[{"xaxis2.range": [
+                            (datetime.now(UTC) - timedelta(hours=6)).strftime('%Y-%m-%d %H:%M:%S'),
+                            datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')
+                        ]}]
+                    )
+                ]
             )
         ]
     )

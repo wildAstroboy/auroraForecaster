@@ -4,7 +4,7 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 from datetime import datetime, timedelta
 from dateutil.tz import UTC
-
+from scipy.signal import filter_design
 
 # Historical Data
 KP_FORECAST_URL = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json'
@@ -47,9 +47,15 @@ class NoaaData:
                          if cutoff_time <= datetime.fromisoformat(item['time_tag']).replace(
                 tzinfo=UTC) <= future_cutoff_time]
 
+
         df = pd.DataFrame(filtered_data, columns=['time', 'kp', 'observed'])
 
-        # print(df)
+        df['time'] = pd.to_datetime(df['time'], errors='coerce')
+
+        # 2. Convert it to a string format that Plotly's layout engine can reliably project onto a 2D axis
+        df['time'] = df['time'].dt.strftime('%Y-%m-%d %H:%M:%S')
+
+        #print(df)
         return df
 
     # Get Space Weather Alerts
@@ -75,8 +81,18 @@ class NoaaData:
         s_short_energy_df = dfs_by_energy['0.05-0.4nm']
         s_long_energy_df = dfs_by_energy['0.1-0.8nm']
 
-        #print(p_long_energy_df)
-        return p_short_energy_df, p_long_energy_df, s_short_energy_df, s_long_energy_df
+        # Convert to pandas Datetime objects
+        p_short_energy_df['time_tag'] = pd.to_datetime(p_short_energy_df['time_tag'])
+
+        # Find the earliest and latest overall dates to anchor the time selectors
+        min_date = p_short_energy_df['time_tag'].min()
+        max_date = p_short_energy_df['time_tag'].max()
+
+        # Format them as ISO strings which Plotly axes require
+        xray_timeline_range = [min_date.strftime("%Y-%m-%d %H:%M:%S"), max_date.strftime("%Y-%m-%d %H:%M:%S")]
+
+        #print(xray_timeline_range)
+        return p_short_energy_df, p_long_energy_df, s_short_energy_df, s_long_energy_df, xray_timeline_range
 
     """
     Planned for future use.
@@ -125,4 +141,4 @@ class NoaaData:
 noaa_data = NoaaData()
 
 if __name__ == '__main__':
-    noaa_data.get_primary_xray()
+    noaa_data.get_kp_forecast()
