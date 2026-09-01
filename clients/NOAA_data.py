@@ -4,7 +4,6 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 from datetime import datetime, timedelta
 from dateutil.tz import UTC
-from scipy.signal import filter_design
 
 # Historical Data
 KP_FORECAST_URL = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json'

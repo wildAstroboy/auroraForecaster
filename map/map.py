@@ -99,24 +99,24 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         x = kp_data['time'],
         y = kp_data['kp'],
 
-        xaxis='x',
-        yaxis='y',
+        xaxis = 'x',
+        yaxis = 'y',
 
         customdata = [list(x) for x in zip(kp_data['kp'], kp_data['observed'])],
-        textposition='outside',
-        texttemplate='%{customdata[0]:.1f}<br>(%{customdata[1]})',
+        textposition = 'outside',
+        texttemplate = '%{customdata[0]:.1f}<br>(%{customdata[1]})',
 
-        marker=dict(
-            color=kp_data['bar_color'],
-            line=dict(width=0)
+        marker = dict(
+            color = kp_data['bar_color'],
+            line = dict(width=0)
         ),
-        hoverinfo='all',
-        hovertemplate=(
+        hoverinfo = 'all',
+        hovertemplate = (
             'Time: %{x}<br>'
             'Kp Index: %{customdata[0]:.1f}<br>'
             'Status: %{customdata[1]}<extra></extra>'
         ),
-        visible=False  # Hidden on initial load
+        visible = False  # Hidden on initial load
     )
     fig.add_trace(bar_trace)
 
@@ -132,8 +132,8 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         name = 'GOES-18 Short',
         x = p_short_df['time_tag'],
         y = p_short_df['flux'],
-        xaxis='x2',
-        yaxis='y2',
+        xaxis = 'x2',
+        yaxis = 'y2',
         visible = False,
     )
 
@@ -141,36 +141,36 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
 
     # Primary Long
     line_trace_p_long = go.Scatter(
-        name='GOES-18 Long',
-        x=p_long_df['time_tag'],
-        y=p_long_df['flux'],
-        xaxis='x2',
-        yaxis='y2',
-        visible=False,
+        name = 'GOES-18 Long',
+        x = p_long_df['time_tag'],
+        y = p_long_df['flux'],
+        xaxis = 'x2',
+        yaxis = 'y2',
+        visible = False,
     )
 
     fig.add_trace(line_trace_p_long)
 
     # Secondary Short
     line_trace_s_short = go.Scatter(
-        name='GOES-19 Short',
-        x=s_short_df['time_tag'],
-        y=s_short_df['flux'],
-        xaxis='x2',
-        yaxis='y2',
-        visible=False,
+        name = 'GOES-19 Short',
+        x = s_short_df['time_tag'],
+        y = s_short_df['flux'],
+        xaxis = 'x2',
+        yaxis = 'y2',
+        visible = False,
     )
 
     fig.add_trace(line_trace_s_short)
 
     # Secondary Long
     line_trace_s_long = go.Scatter(
-        name='GOES-19 Long',
-        x=s_long_df['time_tag'],
-        y=s_long_df['flux'],
-        xaxis='x2',
-        yaxis='y2',
-        visible=False,
+        name = 'GOES-19 Long',
+        x = s_long_df['time_tag'],
+        y = s_long_df['flux'],
+        xaxis = 'x2',
+        yaxis = 'y2',
+        visible = False,
     )
 
     fig.add_trace(line_trace_s_long)
@@ -320,14 +320,13 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
 
                                 'xaxis.visible': False, 'yaxis.visible': False,
                                 'xaxis2.visible': True, 'yaxis2.visible': True,
-
                                 'xaxis2.title.text': 'Time Tag',
+                                'xaxis2.type': 'date',
+
                                 'yaxis2.title.text': 'Flux Watts / m²',
                                 'yaxis2.type': 'log',
                                 'yaxis2.range': [-10, -2],
                                 'yaxis2.dtick': None,
-
-                                'xaxis2.type': 'date',
 
                                 'mapbox.visible': False,
                                 'mapbox.domain': dict(x=[0, 0.01], y=[0, 0.01]),
@@ -341,52 +340,54 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
                                 'hovermode': 'x',
                                 'updatemenus[1].visible': True,
                                 'legend': dict(
-                                    yanchor="top",
-                                    y=0.95,
-                                    xanchor="right",
-                                    x=0.98,
-                                    bgcolor="rgba(17, 17, 17, 0.6)",
-                                    font=dict(color="#FFFFFF")
+                                    yanchor = "top",
+                                    y = 0.95,
+                                    xanchor = "right",
+                                    x = 0.98,
+                                    bgcolor = "rgba(17, 17, 17, 0.6)",
+                                    font = dict(color="#FFFFFF")
                                 )
                             }
                         ]
                     ),
                 ],
             ),
+
+            # Time Range Buttons for X-Ray Flux
             dict(
-                type='buttons',
-                direction='right',
-                x=0.52,
-                y=1.06,
-                active=0,
+                type = 'buttons',
+                direction = 'right',
+                x = 0.52,
+                y = 1.06,
+                active = 0,
                 visible = False,
-                font=dict(color='black'),
-                buttons=[
+                font = dict(color='black'),
+                buttons = [
                     dict(
-                        label="Full View",
-                        method="relayout",
-                        args=[{"xaxis2.range": timeline_range}]
+                        label = "Full View",
+                        method = "relayout",
+                        args = [{"xaxis2.range": timeline_range}]
                     ),
                     dict(
-                        label="Last 3 Days",
-                        method="relayout",
-                        args=[{"xaxis2.range": [
+                        label = "Last 3 Days",
+                        method = "relayout",
+                        args = [{"xaxis2.range": [
                             (datetime.now(UTC) - timedelta(days=3)).strftime('%Y-%m-%d %H:%M:%S'),
                             datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')
                         ]}]
                     ),
                     dict(
-                        label="Last 24 Hours",
-                        method="relayout",
-                        args=[{"xaxis2.range": [
+                        label = "Last 24 Hours",
+                        method = "relayout",
+                        args = [{"xaxis2.range": [
                             (datetime.now(UTC) - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                             datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')
                         ]}]
                     ),
                     dict(
-                        label="Last 6 Hours",
-                        method="relayout",
-                        args=[{"xaxis2.range": [
+                        label = "Last 6 Hours",
+                        method = "relayout",
+                        args = [{"xaxis2.range": [
                             (datetime.now(UTC) - timedelta(hours=6)).strftime('%Y-%m-%d %H:%M:%S'),
                             datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')
                         ]}]
@@ -417,4 +418,4 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
     )
 
     # Write the map to an HTML file
-    fig.write_html('map/aurora_location.html', config ={'scrollZoom': True})
+    fig.write_html('map/aurora_location.html', config = {'scrollZoom': True})
