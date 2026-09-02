@@ -71,11 +71,13 @@ class NoaaData:
             return None
 
         df1 = pd.DataFrame(primary_data)
+        df1 = df1.iloc[::5]
         dfs_by_energy = {energy: group for energy, group in df1.groupby('energy')}
         p_short_energy_df = dfs_by_energy['0.05-0.4nm']
         p_long_energy_df = dfs_by_energy['0.1-0.8nm']
 
         df2 = pd.DataFrame(secondary_data)
+        df2 = df2.iloc[::5]
         dfs_by_energy = {energy: group for energy, group in df2.groupby('energy')}
         s_short_energy_df = dfs_by_energy['0.05-0.4nm']
         s_long_energy_df = dfs_by_energy['0.1-0.8nm']
