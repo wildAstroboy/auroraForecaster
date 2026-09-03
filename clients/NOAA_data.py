@@ -64,18 +64,21 @@ class NoaaData:
             return None
         return alerts_data[0]
 
+    # Get X-Ray Data
     def get_xray_data(self):
         primary_data = self._fetch_json(PRIMARY_XRAY_FLARES)
         secondary_data = self._fetch_json(SECONDARY_XRAY_FLARES)
         if primary_data is None or secondary_data is None:
             return None
 
+        # Primary X-Ray Data as DataFrame1
         df1 = pd.DataFrame(primary_data)
         df1 = df1.iloc[::5]
         dfs_by_energy = {energy: group for energy, group in df1.groupby('energy')}
         p_short_energy_df = dfs_by_energy['0.05-0.4nm']
         p_long_energy_df = dfs_by_energy['0.1-0.8nm']
 
+        # Secondary X-Ray Data as DataFrame2
         df2 = pd.DataFrame(secondary_data)
         df2 = df2.iloc[::5]
         dfs_by_energy = {energy: group for energy, group in df2.groupby('energy')}
@@ -85,11 +88,11 @@ class NoaaData:
         # Convert to pandas Datetime objects
         p_short_energy_df['time_tag'] = pd.to_datetime(p_short_energy_df['time_tag'])
 
-        # Find the earliest and latest overall dates to anchor the time selectors
+        # Find the earliest and latest overall dates
         min_date = p_short_energy_df['time_tag'].min()
         max_date = p_short_energy_df['time_tag'].max()
 
-        # Format them as ISO strings which Plotly axes require
+        # Format them as ISO strings
         xray_timeline_range = [min_date.strftime("%Y-%m-%d %H:%M:%S"), max_date.strftime("%Y-%m-%d %H:%M:%S")]
 
         #print(xray_timeline_range)
@@ -139,7 +142,11 @@ class NoaaData:
         df['forecast'] = forecast_time
         return df
 
+
 noaa_data = NoaaData()
+"""
+For Testing
 
 if __name__ == '__main__':
     noaa_data.get_kp_forecast()
+"""

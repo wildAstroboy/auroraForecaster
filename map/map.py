@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 
 
 # Create the interactive map
-def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_short_energy, s_long_energy, timeline_range, carto_api_key):
+def create_map(aurora_coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_short_energy, s_long_energy, timeline_range, carto_api_key):
 
     # Get local lat and lon, if not found, use [0,0]
     my_loc = geocoder.ip('me')
@@ -17,7 +17,8 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         my_lat = 0
         my_lon = 0
 
-    aurora_df = coords
+    # Aurora Data
+    aurora_df = aurora_coords
 
     # Convert forecast time to local time.
     utc_dt = datetime.fromisoformat(aurora_df.iloc[0]['forecast'])
@@ -32,6 +33,7 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         (1.00, '#FF0000')
     ]
 
+    # Init Plotly
     fig = go.Figure()
 
     # Density Map Trace
@@ -75,9 +77,10 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         font = dict(size=14, color='#AAAAAA')
     )
 
-    # Process Kp Data
+    # Kp Index Data
     kp_data = kp_forecast
 
+    # Bar colors
     def get_bar_color(row):
         if row['observed'] == 'predicted':
             return '#9933FF'
@@ -116,7 +119,7 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
             'Kp Index: %{customdata[0]:.1f}<br>'
             'Status: %{customdata[1]}<extra></extra>'
         ),
-        visible = False  # Hidden on initial load
+        visible = False
     )
     fig.add_trace(bar_trace)
 
@@ -134,7 +137,7 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         y = p_short_df['flux'],
         xaxis = 'x2',
         yaxis = 'y2',
-        visible = False,
+        visible = 'legendonly',
     )
 
     fig.add_trace(line_trace_p_short)
@@ -146,7 +149,7 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         y = p_long_df['flux'],
         xaxis = 'x2',
         yaxis = 'y2',
-        visible = False,
+        visible = 'legendonly',
     )
 
     fig.add_trace(line_trace_p_long)
@@ -158,7 +161,7 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         y = s_short_df['flux'],
         xaxis = 'x2',
         yaxis = 'y2',
-        visible = False,
+        visible = 'legendonly',
     )
 
     fig.add_trace(line_trace_s_short)
@@ -170,7 +173,7 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
         y = s_long_df['flux'],
         xaxis = 'x2',
         yaxis = 'y2',
-        visible = False,
+        visible = 'legendonly',
     )
 
     fig.add_trace(line_trace_s_long)
@@ -248,12 +251,12 @@ def create_map(coords, kp_forecast, alerts, p_short_energy, p_long_energy, s_sho
                                 'mapbox.style': 'carto-darkmatter',
                                 'mapbox.layers': [
                                     dict(
-                                        sourcetype="raster",
-                                        source=[
+                                        sourcetype = "raster",
+                                        source = [
                                             f"https://basemaps.cartocdn.com/rastertiles/dark_all/{{z}}/{{x}}/{{y}}.png?key={carto_api_key}"
                                         ],
-                                        below="traces",
-                                        sourceattribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                                        below = "traces",
+                                        sourceattribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'
                                     )
                                 ],
                                 'dragmode': 'pan',
