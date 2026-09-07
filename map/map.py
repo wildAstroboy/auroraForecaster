@@ -323,10 +323,10 @@ def create_map(aurora_coords, kp_forecast, alerts, p_short_energy, p_long_energy
 
                                 'xaxis.visible': False, 'yaxis.visible': False,
                                 'xaxis2.visible': True, 'yaxis2.visible': True,
-                                'xaxis2.title.text': 'Time Tag',
+                                'xaxis2.title.text': 'Time',
                                 'xaxis2.type': 'date',
 
-                                'yaxis2.title.text': 'Flux Watts / m²',
+                                'yaxis2.title.text': 'Flux (Watts / m²)',
                                 'yaxis2.type': 'log',
                                 'yaxis2.range': [-10, -2],
                                 'yaxis2.dtick': None,
@@ -360,8 +360,8 @@ def create_map(aurora_coords, kp_forecast, alerts, p_short_energy, p_long_energy
             dict(
                 type = 'buttons',
                 direction = 'right',
-                x = 0.52,
-                y = 1.06,
+                x = 0.244,
+                y = 1.12,
                 active = 0,
                 visible = False,
                 font = dict(color='black'),
